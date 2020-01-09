@@ -1,5 +1,5 @@
 Name: libocrdma
-Version: 1.0.5
+Version: 1.0.6
 Release: 1%{?dist}
 Summary: Userspace Library for Emulex ROCEE Device.
 Group: System Environment/Libraries

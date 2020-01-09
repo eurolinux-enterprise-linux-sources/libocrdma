@@ -651,20 +651,6 @@ mbx_err:
 	return NULL;
 }
 
-/*
- * ocrdma_query_qp
- */
-int ocrdma_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
-		    int attr_mask, struct ibv_qp_init_attr *init_attr)
-{
-	struct ibv_query_qp cmd;
-	int status;
-
-	status =
-	    ibv_cmd_query_qp(qp, attr, attr_mask, init_attr, &cmd, sizeof(cmd));
-	return status;
-}
-
 enum ocrdma_qp_state get_ocrdma_qp_state(enum ibv_qp_state qps)
 {
 	switch (qps) {
@@ -893,6 +879,25 @@ int ocrdma_modify_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
 	status = ibv_cmd_modify_qp(ibqp, attr, attr_mask, &cmd, sizeof cmd);
 	if ((!status) && (attr_mask & IBV_QP_STATE))
 		ocrdma_qp_state_machine(qp, attr->qp_state);
+	return status;
+}
+
+/*
+ * ocrdma_query_qp
+ */
+int ocrdma_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
+		    int attr_mask, struct ibv_qp_init_attr *init_attr)
+{
+	struct ibv_query_qp cmd;
+	struct ocrdma_qp *qp = get_ocrdma_qp(ibqp);
+	int status;
+
+	status = ibv_cmd_query_qp(ibqp, attr, attr_mask,
+				  init_attr, &cmd, sizeof(cmd));
+
+	if (!status)
+		ocrdma_qp_state_machine(qp, attr->qp_state);
+
 	return status;
 }
 
@@ -1191,6 +1196,9 @@ static void ocrdma_build_ud_hdr(struct ocrdma_qp *qp,
 	ud_hdr->rsvd_dest_qpn = wr->wr.ud.remote_qpn;
 	ud_hdr->qkey = wr->wr.ud.remote_qkey;
 	ud_hdr->rsvd_ahid = ah->id;
+	if (ah->isvlan)
+		hdr->cw |= (OCRDMA_FLAG_AH_VLAN_PR <<
+			    OCRDMA_WQE_FLAGS_SHIFT);
 }
 
 static void ocrdma_build_sges(struct ocrdma_hdr_wqe *hdr,
@@ -1995,13 +2003,10 @@ expand_cqe:
 	}
 stop_cqe:
 	cq->getp = cur_getp;
-	if (cq->deferred_arm) {
-		ocrdma_ring_cq_db(cq, 1, cq->deferred_sol, polled_hw_cqes);
+	if (cq->deferred_arm || polled_hw_cqes) {
+		ocrdma_ring_cq_db(cq, cq->deferred_arm,
+				  cq->deferred_sol, polled_hw_cqes);
 		cq->deferred_arm = 0;
-		cq->deferred_sol = 0;
-	} else {
-		/* We need to pop the CQE. No need to arm */
-		ocrdma_ring_cq_db(cq, 0, cq->deferred_sol, polled_hw_cqes);
 		cq->deferred_sol = 0;
 	}
 
@@ -2151,9 +2156,10 @@ struct ibv_ah *ocrdma_create_ah(struct ibv_pd *ibpd, struct ibv_ah_attr *attr)
 	if (status)
 		goto cmd_err;
 
-	ah->id = pd->uctx->ah_tbl[ahtbl_idx];
+	ah->id = pd->uctx->ah_tbl[ahtbl_idx] & OCRDMA_AH_ID_MASK;
+	ah->isvlan = (pd->uctx->ah_tbl[ahtbl_idx] >>
+			OCRDMA_AH_VLAN_VALID_SHIFT);
 	return &ah->ibv_ah;
-
 cmd_err:
 	ocrdma_free_ah_tbl_id(pd->uctx, ahtbl_idx);
 tbl_err:

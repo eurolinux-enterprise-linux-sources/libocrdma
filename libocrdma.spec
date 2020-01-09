@@ -1,5 +1,5 @@
 Name: libocrdma
-Version: 1.0.5
+Version: 1.0.6
 Release: 1%{?dist}
 Summary: Userspace Library for Emulex ROCEE Device.
 Group: System Environment/Libraries
@@ -49,6 +49,11 @@ rm -f %{buildroot}%{_libdir}/*.la
 %{_libdir}/libocrdma*.a
 
 %changelog
+* Wed Dec 30 2015 Honggang Li <honli@redhat.com> - 1.0.6-1
+- Update to upstream v1.0.6
+- Fix bogus date in changelog
+- Related: bz1276739
+
 * Thu Mar 12 2015 Doug Ledford <dledford@redhat.com> - 1.0.5-1
 - Update to latest upstream release
 - Related: bz1119114, bz1119113
@@ -61,6 +66,6 @@ rm -f %{buildroot}%{_libdir}/*.la
 - Bump and rebuild for pkgwrangler review
 - Related: bz1080183
 
-* Mon May 30 2014 Doug Ledford <dledford@redhat.com> - 1.0.2-1
+* Fri May 30 2014 Doug Ledford <dledford@redhat.com> - 1.0.2-1
 - Initial import into rhel6
 - Resolves: bz1080183
