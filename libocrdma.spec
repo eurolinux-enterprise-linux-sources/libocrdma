@@ -1,5 +1,5 @@
 Name: libocrdma
-Version: 1.0.3
+Version: 1.0.5
 Release: 1%{?dist}
 Summary: Userspace Library for Emulex ROCEE Device.
 Group: System Environment/Libraries
@@ -8,6 +8,7 @@ Url: https://www.openfabrics.org/
 Source: https://www.openfabrics.org/downloads/libocrdma/%{name}-%{version}.tar.gz
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: libibverbs-devel
+Requires: rdma
 ExcludeArch: s390 s390x
 Provides: libibverbs-driver.%{_arch}
 
@@ -48,6 +49,10 @@ rm -f %{buildroot}%{_libdir}/*.la
 %{_libdir}/libocrdma*.a
 
 %changelog
+* Thu Mar 12 2015 Doug Ledford <dledford@redhat.com> - 1.0.5-1
+- Update to latest upstream release
+- Related: bz1119114, bz1119113
+
 * Thu Jul 24 2014 Doug Ledford <dledford@redhat.com> - 1.0.3-1
 - Update to later upstream source
 - Related: bz1080183
