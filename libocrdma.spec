@@ -1,20 +1,19 @@
 Name: libocrdma
-Version: 1.0.5
+Version: 1.0.8
 Release: 1%{?dist}
-Summary: Userspace Library for Emulex ROCEE Device.
+Summary: Userspace Library for Emulex OneConnect RDMA/RoCE Device
 Group: System Environment/Libraries
 License: GPLv2 or BSD
 Url: https://www.openfabrics.org/
 Source: https://www.openfabrics.org/downloads/libocrdma/%{name}-%{version}.tar.gz
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: libibverbs-devel
 Requires: rdma
 ExcludeArch: s390 s390x
 Provides: libibverbs-driver.%{_arch}
 
 %description
-libocrdma provides a device-specific userspace driver for Emulex One
-Command RoCE Adapters for use with the libibverbs library.
+libocrdma provides a device-specific userspace driver for Emulex OneConnect
+RDMA/RoCE Adapters for use with the libibverbs library.
 
 %package static
 Summary: Static version of the libocrdma driver
@@ -41,7 +40,8 @@ rm -f %{buildroot}%{_libdir}/*.la
 %files
 %defattr(-,root,root,-)
 %{_libdir}/libocrdma*.so
-# %doc AUTHORS COPYING ChangeLog README
+%license COPYING
+%doc AUTHORS README
 %config %{_sysconfdir}/libibverbs.d/ocrdma.driver
 
 %files static
@@ -49,6 +49,11 @@ rm -f %{buildroot}%{_libdir}/*.la
 %{_libdir}/libocrdma*.a
 
 %changelog
+* Wed Apr 13 2016 Jarod Wilson <jarod@redhat.com> - 1.0.8-1
+- Update to upstream release v1.0.8 for RoCE v2 support
+- Restore AUTHORS, COPYING and README installation
+- Resolves: bz1276743
+
 * Fri Jan 23 2015 Doug Ledford <dledford@redhat.com> - 1.0.5-1
 - Update to latest release (fix return error codes to match libibverbs spec)
 - Resolves: bz1183636
